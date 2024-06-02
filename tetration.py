@@ -18,3 +18,23 @@ def compute_tetration_divergence_torch(n, x0, y0, eps=5e-3, max_iter=MAX_ITER, e
     
     numpy_map = divergence_map.cpu().detach().numpy().astype(int).T * 255
     return numpy_map
+
+def compute_tetration_divergence_numpy(n, x0, y0, eps=5e-3, max_iter=MAX_ITER, escape_radius=ESCAPE_RADIUS):
+    nx, ny = n, int(n*(9/16))
+    eps_y = eps * (9/16)
+    x = np.linspace(x0 - eps, x0 + eps, nx)
+    y = np.linspace(y0 - eps_y, y0 + eps_y, ny)
+    c = x[:, None] + 1j * y[None, :]
+    z = c
+    divergence_map = np.zeros_like(c, dtype=bool)
+    for _ in range(max_iter):
+        powered = c ** z
+        z = powered
+        divergence_map |= (np.abs(z) > escape_radius)
+    
+    numpy_map = divergence_map.T * 255
+    return numpy_map
+
+if __name__ == "__main__":
+    map_numpy = compute_tetration_divergence_numpy(500, 0, 0, 5)
+    map_torch = compute_tetration_divergence_torch(500, 0, 0, 5)
